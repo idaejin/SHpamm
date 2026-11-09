@@ -1,0 +1,35 @@
+Package: SHpamm
+Title: Subdistribution Hazard Piecewise Exponential Additive Models
+Version: 0.1.0
+Authors@R: c(
+    person("Juan Carlos", "Espinosa-Moreno", role = "aut"),
+    person("Fernando", "García-García", role = "aut"),
+    person("Andreas", "Bender", role = "aut"),
+    person("Dae-Jin", "Lee", email = "dae-jin.lee@ie.edu", role = c("aut", "cre"))
+    )
+Description: Fits flexible subdistribution hazard models for competing risks
+    using weighted piecewise exponential additive models. Implements exact
+    interval-averaged censoring weights, smooth effects through 'mgcv',
+    cumulative incidence prediction, and subject-level and stacked sandwich
+    variance approximations. The fixed-dimensional variance theory does not
+    guarantee coverage for penalised smooth functions.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.1.0)
+Imports:
+    data.table (>= 1.14.0),
+    mgcv (>= 1.8-40),
+    stats,
+    survival (>= 3.5-0),
+    utils
+Suggests:
+    cmprsk,
+    knitr,
+    pammtools,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+URL: https://github.com/idaejin/SHpamm
+BugReports: https://github.com/idaejin/SHpamm/issues
+Config/roxygen2/version: 8.1.0

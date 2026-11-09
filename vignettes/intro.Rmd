@@ -1,0 +1,56 @@
+---
+title: "Introduction to SHpamm"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to SHpamm}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Competing-risk data
+
+`SHpamm` expects one row per subject, a positive observed time, and an integer status: `0` for censoring, `1` for the event of interest, and other positive codes for competing events. Censored subjects remain in the analysis.
+
+```{r}
+library(SHpamm)
+set.seed(42)
+n <- 160
+x <- rnorm(n)
+t1 <- rexp(n, 0.30 * exp(0.4 * x))
+t2 <- rexp(n, 0.22)
+cens <- rexp(n, 0.16)
+time <- pmin(t1, t2, cens, 2)
+status <- ifelse(time == t1, 1L, ifelse(time == t2, 2L, 0L))
+d <- data.frame(time, status, x)
+table(d$status)
+```
+
+## Fit and predict
+
+The model formula specifies covariate effects. A smooth time baseline is added automatically. The censoring formula describes predictors of pre-horizon censoring; the common boundary at two units is exposure, not a censoring event.
+
+```{r}
+fit <- sh_pamm(~ x, d, "time", "status", tau = 2, cut_points = 10,
+               weights_from = "conditional", cens_formula = ~ x)
+predict_cif(fit, data.frame(x = c(-1, 0, 1)), times = c(1, 2))
+summary(censor_support(fit))
+```
+
+The `lower` and `upper` columns are pointwise intervals from an approximate stacked sandwich. For penalised smooths, coverage is not guaranteed by the fixed-dimensional theory. A complete subject bootstrap should refit the censoring model, SH model, smoothness and partition and compare predictions on a common grid.
+
+## Weight and model sensitivity
+
+```{r}
+fit_marginal <- sh_pamm(~ x, d, "time", "status", tau = 2,
+                        cut_points = fit$cut_points)
+cbind(
+  conditional = predict_cif(fit, data.frame(x = 0), 2, se.fit = FALSE)$cif,
+  marginal = predict_cif(fit_marginal, data.frame(x = 0), 2, se.fit = FALSE)$cif
+)
+```
+
+Changing the censoring model within the same SH specification is a sensitivity analysis. It does not establish which model is correct. Check fitted support, event counts, a simpler SH specification and a coarser/finer partition before interpreting flexible effects. `sh_diagnostic(fit, "x")` provides an approximate fixed-basis score diagnostic for a time interaction, subject to the same censoring and SH assumptions.
